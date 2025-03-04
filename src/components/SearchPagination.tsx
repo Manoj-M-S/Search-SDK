@@ -1,63 +1,154 @@
-import React from 'react';
-import { useSearchContext } from './SearchProvider';
+import React from "react";
+import { useSearchContext } from "./SearchProvider";
+import DefaultPreviousIcon from "../assets/PreviousIcon.png";
+import DefaultNextIcon from "../assets/NextIcon.png";
 
 export interface SearchPaginationProps {
-  containerClass?: string;
-  buttonClass?: string;
-  activeButtonClass?: string;
   // Optional prop for custom pagination rendering
-  // We also pass along the default pagination markup so users can reuse it
   renderPagination?: (props: {
     currentPage: number;
     totalPages: number;
     goToPage: (page: number) => void;
     defaultPagination: React.ReactNode;
   }) => React.ReactNode;
+  // Style customization props
+  containerClass?: string;
+  paginationClass?: string;
+  buttonClass?: string;
+  pageInfoClass?: string;
+  dividerClass?: string;
+  previousIconClass?: string;
+  nextIconClass?: string;
+  // Custom icon props
+  previousIcon?: string | any;
+  nextIcon?: string | any;
 }
 
 const SearchPagination: React.FC<SearchPaginationProps> = ({
-  containerClass = "search-pagination",
-  buttonClass = "pagination-btn",
-  activeButtonClass = "active-pagination-btn",
   renderPagination,
+  containerClass = "",
+  paginationClass = "",
+  buttonClass = "",
+  pageInfoClass = "",
+  dividerClass = "",
+  previousIconClass = "",
+  nextIconClass = "",
+  previousIcon,
+  nextIcon,
 }) => {
   const { currentPage, totalPages, goToPage } = useSearchContext();
 
   if (totalPages <= 1) return null;
 
-  const pages = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pages.push(i);
-  }
+  // Render previous icon
+  const renderPreviousIcon = () => {
+    if (previousIcon) {
+      if (React.isValidElement(previousIcon)) {
+        return React.cloneElement<any>(previousIcon, {
+          className: previousIconClass,
+          width: 20,
+          height: 20
+        });
+      }
+      // Handle both imported images and URLs
+      const iconSrc = typeof previousIcon === 'string' ? 
+        previousIcon : 
+        previousIcon.src || previousIcon;
+      
+      return (
+        <img 
+          src={iconSrc}
+          alt="Previous" 
+          width="20" 
+          height="20" 
+          className={previousIconClass}
+        />
+      );
+    }
+    
+    return (
+      <img 
+        src={DefaultPreviousIcon}
+        alt="Previous" 
+        width="20" 
+        height="20" 
+        className={previousIconClass}
+      />
+    );
+  };
+
+  // Render next icon
+  const renderNextIcon = () => {
+    if (nextIcon) {
+      if (React.isValidElement(nextIcon)) {
+        return React.cloneElement<any>(nextIcon, {
+          className: nextIconClass,
+          width: 20,
+          height: 20
+        });
+      }
+      // Handle both imported images and URLs
+      const iconSrc = typeof nextIcon === 'string' ? 
+        nextIcon : 
+        nextIcon.src || nextIcon;
+
+      return (
+        <img 
+          src={iconSrc}
+          alt="Next" 
+          width="20" 
+          height="20" 
+          className={nextIconClass}
+        />
+      );
+    }
+    
+    return (
+      <img 
+        src={DefaultNextIcon}
+        alt="Next" 
+        width="20" 
+        height="20" 
+        className={nextIconClass}
+      />
+    );
+  };
 
   const defaultPagination = (
-    <div className={containerClass}>
-      {currentPage > 1 && (
-        <button className={buttonClass} onClick={() => goToPage(currentPage - 1)}>
-          Previous
-        </button>
-      )}
-      {pages.map((page) => (
+    <div className={`pagination-container ${containerClass}`}>
+      <div className={`divider ${dividerClass}`} />
+      <div className={`pagination ${paginationClass}`}>
         <button
-          key={page}
-          className={page === currentPage ? activeButtonClass : buttonClass}
-          onClick={() => goToPage(page)}
-          disabled={page === currentPage}
+          className={`pagination-button ${buttonClass}`}
+          onClick={() => goToPage(currentPage - 1)}
+          disabled={currentPage === 1}
         >
-          {page}
+          {renderPreviousIcon()}
         </button>
-      ))}
-      {currentPage < totalPages && (
-        <button className={buttonClass} onClick={() => goToPage(currentPage + 1)}>
-          Next
+
+        <div className={`page-info ${pageInfoClass}`}>
+          Page {currentPage} of {totalPages}
+        </div>
+
+        <button
+          className={`pagination-button ${buttonClass}`}
+          onClick={() => goToPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          {renderNextIcon()}
         </button>
-      )}
+      </div>
     </div>
   );
 
   // If a custom render function is provided, use that
   if (renderPagination) {
-    return renderPagination({ currentPage, totalPages, goToPage, defaultPagination });
+    return renderPagination({
+      currentPage,
+      totalPages,
+      goToPage,
+      defaultPagination,
+    });
   }
 
   return defaultPagination;

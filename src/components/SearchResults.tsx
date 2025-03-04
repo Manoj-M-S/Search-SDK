@@ -1,30 +1,37 @@
-// src/components/SearchResults.js
-import React from 'react';
-import { useSearchContext } from './SearchProvider';
-import '../styles.css';
+import React from "react";
+import { useSearchContext } from "./SearchProvider";
+import "../styles.css";
 
 export interface SearchResultsProps {
-  containerClass?: string;
-  hitItemClass?: string;
-  hitTitleClass?: string;
-  hitDescriptionClass?: string;
-  hitScoreClass?: string;
   noResultsText?: string;
   loadingComponent?: React.ReactNode;
   errorComponent?: (error: string) => React.ReactNode;
   renderHit?: (hit: any, queryText: string) => React.ReactNode;
+  // Added style customization props
+  containerClass?: string;
+  resultCardClass?: string;
+  resultTitleClass?: string;
+  resultDescriptionClass?: string;
+  resultMetaClass?: string;
+  noResultsClass?: string;
+  loadingClass?: string;
+  errorClass?: string;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({
-  containerClass = "search-component search-hits",
-  hitItemClass = "hit-item",
-  hitTitleClass = "hit-title",
-  hitDescriptionClass = "hit-description",
-  hitScoreClass = "hit-score",
   noResultsText = "No results found",
   loadingComponent,
   errorComponent,
   renderHit,
+  // Default to empty strings for custom classes
+  containerClass = "",
+  resultCardClass = "",
+  resultTitleClass = "",
+  resultDescriptionClass = "",
+  resultMetaClass = "",
+  noResultsClass = "",
+  loadingClass = "",
+  errorClass = "",
 }) => {
   const { results, queryText, loading, error } = useSearchContext();
 
@@ -35,7 +42,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     words.forEach((word) => {
       if (word.length > 2) {
         const regex = new RegExp(`(${word})`, "gi");
-        highlighted = highlighted.replace(regex, '<span class="highlight">$1</span>');
+        highlighted = highlighted.replace(
+          regex,
+          '<span class="highlight">$1</span>'
+        );
       }
     });
     return highlighted;
@@ -43,9 +53,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   if (loading) {
     return (
-      <div className={containerClass}>
-        {loadingComponent ? loadingComponent : (
-          <div className="search-loading">
+      <div>
+        {loadingComponent ? (
+          loadingComponent
+        ) : (
+          <div className={`search-loading ${loadingClass}`}>
             <div className="search-spinner"></div>
           </div>
         )}
@@ -55,9 +67,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   if (error) {
     return (
-      <div className={containerClass}>
-        {errorComponent ? errorComponent(error) : (
-          <div className="search-error">{error}</div>
+      <div>
+        {errorComponent ? (
+          errorComponent(error)
+        ) : (
+          <div className={`search-error ${errorClass}`}>{error}</div>
         )}
       </div>
     );
@@ -65,45 +79,50 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   if (!results || results.length === 0) {
     return (
-      <div className={containerClass}>
-        <div className="no-results">{noResultsText}</div>
+      <div>
+        <div className={`no-results ${noResultsClass}`}>{noResultsText}</div>
       </div>
     );
   }
 
   return (
-    <div className={containerClass}>
+    <div className={`search-results-container ${containerClass}`}>
       {results.map((hit: any, index: number) => {
         if (renderHit) {
-          return (
-            <div key={index} className={hitItemClass}>
-              {renderHit(hit, queryText)}
-            </div>
-          );
+          return renderHit(hit, queryText);
         }
         return (
-          <div key={index} className={hitItemClass}>
-            {hit.metadata?.url ? (
-              <a 
-                href={hit.metadata.url} 
-                className={hitTitleClass} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                dangerouslySetInnerHTML={{ __html: defaultHighlightMatch(hit.metadata?.title || "Untitled", queryText) }}
-              />
-            ) : (
-              <div 
-                className={hitTitleClass} 
-                dangerouslySetInnerHTML={{ __html: defaultHighlightMatch(hit.metadata?.title || "Untitled", queryText) }}
-              />
-            )}
-            <p 
-              className={hitDescriptionClass} 
-              dangerouslySetInnerHTML={{ __html: defaultHighlightMatch(hit.content, queryText) }} 
-            />
-            {hit.score ? (
-              <div className={hitScoreClass}>Relevance: {(hit.score * 100).toFixed(1)}%</div>
-            ) : null}
+          <div className={`search-result-card ${resultCardClass}`} key={index}>
+            <div className="card-container">
+              {hit.image ? (
+                <div className="card-content-with-image">
+                  <div className="card-text-content">
+                    <h2 className={`card-title ${resultTitleClass}`}>{hit.title}</h2>
+                    <p className={`card-description ${resultDescriptionClass}`}>{hit.content}</p>
+                  </div>
+                  <div
+                    className="card-image"
+                    style={{ backgroundImage: `url(${hit.image})` }}
+                  ></div>
+                </div>
+              ) : (
+                <div className="card-content">
+                  <h2 className={`card-title ${resultTitleClass}`}>{hit.title}</h2>
+                  <p className={`card-description ${resultDescriptionClass}`}>{hit.content}</p>
+                </div>
+              )}
+              <div className={`card-meta ${resultMetaClass}`}>
+                <span className="card-meta-item">
+                  Relevance: {(hit.score * 100).toFixed(1)}%
+                </span>
+                <span className="card-meta-item">
+                  Published on: {hit.publishedDate ?? "Published Date"}
+                </span>
+                <span className="card-meta-item">
+                  {hit.type ?? "Document"}
+                </span>
+              </div>
+            </div>
           </div>
         );
       })}
