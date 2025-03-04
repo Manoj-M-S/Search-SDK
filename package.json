@@ -4,6 +4,10 @@
   "description": "A React SDK for embedded search",
   "main": "dist/search-sdk.js",
   "types": "dist/types/index.d.ts",
+  "files": [
+    "dist",
+    "src/assets"
+  ],
   "scripts": {
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "webpack --mode production",

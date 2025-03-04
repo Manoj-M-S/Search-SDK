@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { mockResults } from "../mock";
 
 interface SearchContextType {
   results: any[];
@@ -8,6 +9,7 @@ interface SearchContextType {
   search: (query: string, page?: number) => void;
   currentPage: number;
   totalPages: number;
+  totalResults: number; // Added to context
   goToPage: (page: number) => void;
 }
 
@@ -27,21 +29,24 @@ interface SearchProviderProps {
   children: ReactNode;
   // Optionally, allow configuration of pageSize
   pageSize?: number;
+  // Added style customization prop for container
+  containerClass?: string;
 }
 
 export const SearchProvider: React.FC<SearchProviderProps> = ({
   apiKey,
   resourceId,
   children,
-  pageSize = 10
+  pageSize = 10,
+  containerClass = "", // Default to empty string
 }) => {
   const [results, setResults] = useState<any[]>([]);
-  const [queryText, setQueryText] = useState('');
+  const [queryText, setQueryText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalResults, setTotalResults] = useState(0); // Add total results state
+  const [totalResults, setTotalResults] = useState(0);
 
   const search = async (query: string, page: number = 1) => {
     if (!apiKey || !resourceId) {
@@ -56,24 +61,23 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({
 
     const baseUrl = "http://3.7.36.230:8282/v1/search";
     try {
-      const response = await fetch(baseUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          query,
-          index: resourceId,
-          page: { results_per_page: pageSize, current_page: page },
-        }),
-      });
+      // const response = await fetch(baseUrl, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     "X-API-Key": apiKey,
+      //   },
+      //   body: JSON.stringify({
+      //     query,
+      //     index: resourceId,
+      //     page: { results_per_page: pageSize, current_page: page },
+      //   }),
+      // });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Search failed");
-      }
+      const data = mockResults;
+      // if (!response.ok) {
+      //   throw new Error(data.message || "Search failed");
+      // }
 
       setResults(data.results);
       // Update pagination states from page object
@@ -96,8 +100,20 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({
   };
 
   return (
-    <SearchContext.Provider value={{ results, queryText, loading, error, search, currentPage, totalPages, goToPage }}>
-      {children}
+    <SearchContext.Provider
+      value={{
+        results,
+        queryText,
+        loading,
+        error,
+        search,
+        currentPage,
+        totalPages,
+        totalResults,
+        goToPage,
+      }}
+    >
+      <div className={`app-container ${containerClass}`}>{children}</div>
     </SearchContext.Provider>
   );
 };
