@@ -61,23 +61,23 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({
 
     const baseUrl = "http://3.7.36.230:8282/v1/search";
     try {
-      // const response = await fetch(baseUrl, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     "X-API-Key": apiKey,
-      //   },
-      //   body: JSON.stringify({
-      //     query,
-      //     index: resourceId,
-      //     page: { results_per_page: pageSize, current_page: page },
-      //   }),
-      // });
+      const response = await fetch(baseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
+        },
+        body: JSON.stringify({
+          query,
+          index: resourceId,
+          page: { results_per_page: pageSize, current_page: page },
+        }),
+      });
 
-      const data = mockResults;
-      // if (!response.ok) {
-      //   throw new Error(data.message || "Search failed");
-      // }
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Search failed");
+      }
 
       setResults(data.results);
       // Update pagination states from page object

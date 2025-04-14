@@ -36,9 +36,13 @@ const SearchPagination: React.FC<SearchPaginationProps> = ({
   previousIcon,
   nextIcon,
 }) => {
-  const { currentPage, totalPages, goToPage } = useSearchContext();
+  const { currentPage, totalPages, goToPage, loading, queryText } = useSearchContext();
 
-  if (totalPages <= 1) return null;
+  // Don't show pagination if:
+  // 1. There's only one page or no pages
+  // 2. The component is in a loading state
+  // 3. No search has been performed yet
+  if (totalPages <= 1 || loading || !queryText) return null;
 
   // Render previous icon
   const renderPreviousIcon = () => {

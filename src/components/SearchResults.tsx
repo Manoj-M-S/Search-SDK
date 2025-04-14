@@ -51,14 +51,16 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     return highlighted;
   };
 
+  // Always show loading state when loading is true
   if (loading) {
     return (
-      <div>
+      <div className="search-loading-container">
         {loadingComponent ? (
           loadingComponent
         ) : (
           <div className={`search-loading ${loadingClass}`}>
             <div className="search-spinner"></div>
+            <div className="loading-text">Loading results...</div>
           </div>
         )}
       </div>
@@ -77,7 +79,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     );
   }
 
-  if (!results || results.length === 0) {
+  // Only show "No results found" if a search has been performed (queryText exists)
+  if (queryText && (!results || results.length === 0)) {
     return (
       <div>
         <div className={`no-results ${noResultsClass}`}>{noResultsText}</div>
@@ -85,11 +88,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     );
   }
 
+  // If no search has been performed yet, don't show anything
+  if (!queryText) {
+    return null;
+  }
+
   return (
     <div className={`search-results-container ${containerClass}`}>
       {results.map((hit: any, index: number) => {
         if (renderHit) {
-          return renderHit(hit, queryText);
+          return (
+            <React.Fragment key={index}>
+              {renderHit(hit, queryText)}
+            </React.Fragment>
+          );
         }
         return (
           <div className={`search-result-card ${resultCardClass}`} key={index}>
